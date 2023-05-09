@@ -697,9 +697,9 @@ GameObject:
   - component: {fileID: 1248440181}
   - component: {fileID: 1248440180}
   - component: {fileID: 1248440183}
-  - component: {fileID: 1248440184}
   - component: {fileID: 1248440185}
   - component: {fileID: 1248440186}
+  - component: {fileID: 1248440187}
   m_Layer: 0
   m_Name: Square
   m_TagString: Untagged
@@ -821,22 +821,6 @@ BoxCollider2D:
   serializedVersion: 2
   m_Size: {x: 1, y: 1}
   m_EdgeRadius: 0
---- !u!114 &1248440184
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1248440179}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3c3d5059b9ff7754aa0ee479abb23421, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  speed: 10
-  grabMoveSpeed: 5
-  slideSpeed: 3
-  jumpForce: 7
 --- !u!114 &1248440185
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -875,3 +859,27 @@ MonoBehaviour:
   bottomOffset: {x: 0, y: -0.5}
   rightOffset: {x: 0.5, y: 0}
   leftOffset: {x: -0.5, y: 0}
+--- !u!114 &1248440187
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1248440179}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3c3d5059b9ff7754aa0ee479abb23421, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rb: {fileID: 0}
+  speed: 10
+  jumpForce: 20
+  slideSpeed: 5
+  wallJumpLerp: 10
+  dashSpeed: 20
+  canMove: 1
+  wallGrab: 0
+  wallJumped: 0
+  wallSlide: 0
+  isDashing: 0
+  side: 1
