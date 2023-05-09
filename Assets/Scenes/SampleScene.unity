@@ -834,7 +834,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 10
-  slideSpeed: 1
+  grabMoveSpeed: 5
+  slideSpeed: 3
   jumpForce: 7
 --- !u!114 &1248440185
 MonoBehaviour:
