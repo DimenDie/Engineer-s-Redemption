@@ -8,6 +8,7 @@ public class PlayerMovement : MonoBehaviour
     private MovementCollision coll;
     [HideInInspector]
     public Rigidbody2D rb;
+    private AnimationScript anim;
 
     [Space]
     [Header("Stats")]
@@ -32,16 +33,11 @@ public class PlayerMovement : MonoBehaviour
 
     public int side = 1;
 
-    //[Space]
-    //[Header("Polish")]
-    //public ParticleSystem dashParticle;
-    //public ParticleSystem jumpParticle;
-    //public ParticleSystem wallJumpParticle;
-    //public ParticleSystem slideParticle;
 
     // Start is called before the first frame update
     void Start()
     {
+        anim = GetComponentInChildren<AnimationScript>();
         coll = GetComponent<MovementCollision>();
         rb = GetComponent<Rigidbody2D>();
     }
@@ -55,6 +51,7 @@ public class PlayerMovement : MonoBehaviour
         float yRaw = Input.GetAxisRaw("Vertical");
         Vector2 dir = new Vector2(x, y);
 
+        anim.SetHorizontalMovement(x, y, rb.velocity.y);
         Walk(dir);
 
         if (coll.onWall && Input.GetButton("Fire3") && canMove)
@@ -128,18 +125,20 @@ public class PlayerMovement : MonoBehaviour
             groundTouch = false;
         }
 
-        WallParticle(y);
-
         if (wallGrab || wallSlide || !canMove)
             return;
 
         if (x > 0)
         {
             side = 1;
+            anim.Flip(side);
         }
         if (x < 0)
         {
             side = -1;
+            anim.Flip(side);
+
+            side = anim.sr.flipX ? -1 : 1;
         }
 
 
@@ -167,7 +166,6 @@ public class PlayerMovement : MonoBehaviour
     {
         StartCoroutine(GroundDash());
 
-        //dashParticle.Play();
         rb.gravityScale = 0;
         GetComponent<Jumping>().enabled = false;
         wallJumped = true;
@@ -175,7 +173,6 @@ public class PlayerMovement : MonoBehaviour
 
         yield return new WaitForSeconds(.3f);
 
-        //dashParticle.Stop();
         rb.gravityScale = 3;
         GetComponent<Jumping>().enabled = true;
         wallJumped = false;
@@ -242,13 +239,8 @@ public class PlayerMovement : MonoBehaviour
 
     private void Jump(Vector2 dir, bool wall)
     {
-        //slideParticle.transform.parent.localScale = new Vector3(ParticleSide(), 1, 1);
-        //ParticleSystem particle = wall ? wallJumpParticle : jumpParticle;
-
         rb.velocity = new Vector2(rb.velocity.x, 0);
         rb.velocity += dir * jumpForce;
-
-        //particle.Play();
     }
 
     IEnumerator DisableMovement(float time)
@@ -261,26 +253,5 @@ public class PlayerMovement : MonoBehaviour
     void RigidbodyDrag(float x)
     {
         rb.drag = x;
-    }
-
-    void WallParticle(float vertical)
-    {
-        //var main = slideParticle.main;
-
-        if (wallSlide || (wallGrab && vertical < 0))
-        {
-            //slideParticle.transform.parent.localScale = new Vector3(ParticleSide(), 1, 1);
-            //main.startColor = Color.white;
-        }
-        else
-        {
-            //main.startColor = Color.clear;
-        }
-    }
-
-    int ParticleSide()
-    {
-        int particleSide = coll.onRightWall ? 1 : -1;
-        return particleSide;
     }
 }
