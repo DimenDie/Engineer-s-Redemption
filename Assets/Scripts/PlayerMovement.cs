@@ -8,7 +8,9 @@ public class PlayerMovement : MonoBehaviour
     private MovementCollision coll;
     [HideInInspector]
     public Rigidbody2D rb;
-    private AnimationScript anim;
+    public AnimationScript anim;
+
+    private Character character;
 
     [Space]
     [Header("Stats")]
@@ -17,6 +19,7 @@ public class PlayerMovement : MonoBehaviour
     public float slideSpeed = 5;
     public float wallJumpLerp = 10;
     public float dashSpeed = 20;
+    public int side = 1;
 
     [Space]
     [Header("Booleans")]
@@ -25,13 +28,17 @@ public class PlayerMovement : MonoBehaviour
     public bool wallJumped;
     public bool wallSlide;
     public bool isDashing;
+    private bool hasDashed;
+    private bool groundTouch;
 
     [Space]
-
-    private bool groundTouch;
-    private bool hasDashed;
-
-    public int side = 1;
+    [Header("Attack")]
+    public Transform attackPoint;
+    public float attackRange = 0.5f;
+    public LayerMask enemyLayers;
+    private Vector2 attackPos;
+    public float attackRate = 2f;
+    float nextAttackTime = 0f;
 
 
     // Start is called before the first frame update
@@ -40,6 +47,9 @@ public class PlayerMovement : MonoBehaviour
         anim = GetComponentInChildren<AnimationScript>();
         coll = GetComponent<MovementCollision>();
         rb = GetComponent<Rigidbody2D>();
+        character = GetComponent<Character>();
+
+        attackPos = attackPoint.localPosition;
     }
 
     // Update is called once per frame
@@ -49,6 +59,7 @@ public class PlayerMovement : MonoBehaviour
         float y = Input.GetAxis("Vertical");
         float xRaw = Input.GetAxisRaw("Horizontal");
         float yRaw = Input.GetAxisRaw("Vertical");
+
         Vector2 dir = new Vector2(x, y);
 
         anim.SetHorizontalMovement(x, y, rb.velocity.y);
@@ -56,6 +67,8 @@ public class PlayerMovement : MonoBehaviour
 
         if (coll.onWall && Input.GetButton("Fire3") && canMove)
         {
+            if (side != coll.wallSide)
+                anim.Flip(side * -1);
             wallGrab = true;
             wallSlide = false;
         }
@@ -108,10 +121,29 @@ public class PlayerMovement : MonoBehaviour
                 WallJump();
         }
 
-        if (Input.GetButtonDown("Fire1") && !hasDashed)
+        if (Input.GetKeyDown(KeyCode.LeftControl) && !hasDashed)
         {
             if (xRaw != 0 || yRaw != 0)
+            {
+                anim.SetTrigger("dash");
                 Dash(xRaw, yRaw);
+            }
+        }
+
+
+        attackPoint.localPosition = attackPos * side;
+        
+        if (Input.GetKeyDown(KeyCode.Mouse0))
+        {
+            if(Time.time >= nextAttackTime)
+            {
+                Attack();
+                nextAttackTime = Time.time + 1f / attackRate;
+            }
+        }
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            character.ReceiveDamage();
         }
 
         if (coll.onGround && !groundTouch)
@@ -160,6 +192,17 @@ public class PlayerMovement : MonoBehaviour
 
         rb.velocity += dir.normalized * dashSpeed;
         StartCoroutine(DashWait());
+    }
+
+    private void Attack()
+    {
+        anim.SetTrigger("attack");
+        Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
+        foreach (var enemy in hitEnemies)
+        {
+            enemy.GetComponent<Enemy>().Die();
+        }
+
     }
 
     IEnumerator DashWait()
