@@ -27,7 +27,7 @@ public class Character : MonoBehaviour
 
     private void FixedUpdate()
     {
-        if(Health == 0 && !isDead)
+        if(Health <= 0 && !isDead)
         {
             isDead = true;
             Die();
@@ -40,7 +40,7 @@ public class Character : MonoBehaviour
         {
             if (value < 12)
                 health = value;
-            livesBar.Refresh();
+            livesBar.RefreshCharacter();
         }
     }
 

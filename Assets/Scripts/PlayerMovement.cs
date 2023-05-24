@@ -141,10 +141,7 @@ public class PlayerMovement : MonoBehaviour
                 nextAttackTime = Time.time + 1f / attackRate;
             }
         }
-        if (Input.GetKeyDown(KeyCode.X))
-        {
-            character.ReceiveDamage();
-        }
+
 
         if (coll.onGround && !groundTouch)
         {
@@ -200,7 +197,11 @@ public class PlayerMovement : MonoBehaviour
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
         foreach (var enemy in hitEnemies)
         {
-            enemy.GetComponent<Enemy>().Die();
+            print(enemy.name);
+            if(enemy.GetComponent<Enemy>())
+                enemy.GetComponent<Enemy>().Die();
+            if(enemy.GetComponentInParent<Boss>())
+                enemy.GetComponentInParent<Boss>().ReceiveDamage();
         }
 
     }
