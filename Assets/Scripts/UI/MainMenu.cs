@@ -5,6 +5,23 @@ using UnityEngine.SceneManagement;
 
 public class MainMenu : MonoBehaviour
 {
+    InputMaster controls;
+    public GameObject pauseMenu;
+    private void OnEnable()
+    {
+        controls.Enable();
+    }
+    private void OnDisable()
+    {
+        controls.Disable();
+    }
+
+    private void Awake()
+    {
+        controls = new InputMaster();
+
+        controls.Menu.PauseMenu.performed += pause => PauseMenu();
+    }
     private void Start()
     {
         Time.timeScale = 1.0f;
@@ -23,4 +40,11 @@ public class MainMenu : MonoBehaviour
     {
         Time.timeScale = rate;
     }
+
+    public void PauseMenu()
+    {
+        pauseMenu.SetActive(true);
+        ChangeTimeRate(0);
+    }
+
 }

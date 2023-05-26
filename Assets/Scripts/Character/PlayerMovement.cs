@@ -3,9 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
+    public InputMaster controls;
+
     private MovementCollision coll;
     [HideInInspector]
     public Rigidbody2D rb;
@@ -41,8 +44,37 @@ public class PlayerMovement : MonoBehaviour
     public float attackRate = 2f;
     float nextAttackTime = 0f;
 
+    [Space]
+    [Header("Bullshit")]
+    private float x;
+    private float y;
+    private void OnEnable()
+    {
+        controls.Enable();
+    }
+    private void OnDisable()
+    {
+        controls.Disable();
+    }
 
-    // Start is called before the first frame update
+    private void Awake()
+    {
+        controls = new InputMaster();
+        controls.Player.Attack.performed += _ => Attack();
+        controls.Player.Movement.performed += ctx => Walk(ctx.ReadValue<Vector2>());
+        controls.Player.Movement.performed += ctx => AxisLoad(ctx.ReadValue<Vector2>());
+        controls.Player.Movement.canceled += ctx => Walk(ctx.ReadValue<Vector2>());
+        controls.Player.Movement.canceled += ctx => AxisLoad(ctx.ReadValue<Vector2>());
+
+        controls.Player.Jump.performed += jmp => JumpCheck();
+
+        controls.Player.Grab.performed += grb => WallGrabCheck();
+        controls.Player.Grab.performed += grb => WallGrab();
+
+        controls.Player.Dash.performed += dsh => DashCheck(); 
+
+    }
+
     void Start()
     {
         anim = GetComponentInChildren<AnimationScript>();
@@ -53,14 +85,8 @@ public class PlayerMovement : MonoBehaviour
         attackPos = attackPoint.localPosition;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        float x = Input.GetAxis("Horizontal");
-        float y = Input.GetAxis("Vertical");
-        float xRaw = Input.GetAxisRaw("Horizontal");
-        float yRaw = Input.GetAxisRaw("Vertical");
-
         if (x != 0)
             FindObjectOfType<AudioManager>().Play("PlayerStep");
         else
@@ -71,26 +97,12 @@ public class PlayerMovement : MonoBehaviour
         anim.SetHorizontalMovement(x, y, rb.velocity.y);
         Walk(dir);
 
-        if (coll.onWall && Input.GetButton("Fire3") && canMove)
-        {
-            if (side != coll.wallSide)
-                anim.Flip(side * -1);
-            wallGrab = true;
-            wallSlide = false;
-        }
-
-        if (Input.GetButtonUp("Fire3") || !coll.onWall || !canMove)
-        {
-            wallGrab = false;
-            wallSlide = false;
-        }
-
         if (coll.onGround && !isDashing)
         {
             wallJumped = false;
             GetComponent<Jumping>().enabled = true;
         }
-
+        WallGrabCheck();
         if (wallGrab && !isDashing)
         {
             rb.gravityScale = 0;
@@ -101,6 +113,7 @@ public class PlayerMovement : MonoBehaviour
 
             rb.velocity = new Vector2(rb.velocity.x, y * (speed * speedModifier));
         }
+
         else
         {
             rb.gravityScale = 3;
@@ -118,37 +131,7 @@ public class PlayerMovement : MonoBehaviour
         if (!coll.onWall || coll.onGround)
             wallSlide = false;
 
-        if (Input.GetButtonDown("Jump"))
-        {
-            anim.SetTrigger("jump");
-            FindObjectOfType<AudioManager>().Play("PlayerJump");
-            if (coll.onGround)
-                Jump(Vector2.up, false);
-            if (coll.onWall && !coll.onGround)
-                WallJump();
-        }
-
-        if (Input.GetKeyDown(KeyCode.LeftControl) && !hasDashed)
-        {
-            if (xRaw != 0 || yRaw != 0)
-            {
-                anim.SetTrigger("dash");
-                Dash(xRaw, yRaw);
-            }
-        }
-
-
         attackPoint.localPosition = attackPos * side;
-        
-        if (Input.GetKeyDown(KeyCode.Mouse0))
-        {
-            if(Time.time >= nextAttackTime)
-            {
-                Attack();
-                nextAttackTime = Time.time + 1f / attackRate;
-            }
-        }
-
 
         if (coll.onGround && !groundTouch)
         {
@@ -180,6 +163,46 @@ public class PlayerMovement : MonoBehaviour
 
     }
 
+    void WallGrab()
+    {
+        if (!coll.onWall || !canMove) return;
+
+        if (side != coll.wallSide)
+            anim.Flip(side * -1);
+        wallGrab = true;
+        wallSlide = false;
+    }
+    void DashCheck()
+    {
+        if (hasDashed) return;
+            if (x != 0 || y != 0)
+            {
+                anim.SetTrigger("dash");
+                Dash(x, y);
+            }
+    }
+    void WallGrabCheck()
+    {
+        if (!coll.onWall || !canMove)
+        {
+            wallGrab = false;
+            wallSlide = false;
+        }
+    }
+    void JumpCheck()
+    {
+        anim.SetTrigger("jump");
+        FindObjectOfType<AudioManager>().Play("PlayerJump");
+        if (coll.onGround)
+            Jump(Vector2.up, false);
+        if (coll.onWall && !coll.onGround)
+            WallJump();
+    }
+    void AxisLoad(Vector2 xyAxis)
+    {
+        x = xyAxis.x;
+        y = xyAxis.y;
+    }
     void GroundTouch()
     {
         hasDashed = false;
@@ -200,6 +223,7 @@ public class PlayerMovement : MonoBehaviour
 
     private void Attack()
     {
+        if (Time.time < nextAttackTime) return;
         anim.SetTrigger("attack");
         FindObjectOfType<AudioManager>().Play("PlayerAttack");
         Collider2D[] hitEnemies = Physics2D.OverlapCircleAll(attackPoint.position, attackRange, enemyLayers);
@@ -211,7 +235,7 @@ public class PlayerMovement : MonoBehaviour
             if(enemy.GetComponentInParent<Boss>())
                 enemy.GetComponentInParent<Boss>().ReceiveDamage();
         }
-
+        nextAttackTime = Time.time + 1f / attackRate;
     }
 
     IEnumerator DashWait()
@@ -278,7 +302,6 @@ public class PlayerMovement : MonoBehaviour
 
         if (wallGrab)
             return;
-
         if (!wallJumped)
         {
             rb.velocity = new Vector2(dir.x * speed, rb.velocity.y);

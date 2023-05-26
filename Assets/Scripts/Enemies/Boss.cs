@@ -63,8 +63,6 @@ public class Boss : MonoBehaviour
             animStart = Time.time;
         }
 
-        if (Input.GetKeyDown(KeyCode.X))
-            ReceiveDamage();
     }
 
     void CheckAttack()

@@ -80,3 +80,28 @@ MonoBehaviour:
     volume: 1
     pitch: 1
     source: {fileID: 0}
+  - name: BossDeath
+    clip: {fileID: 8300000, guid: 6b40926f987b944458ddc4f5a93d5ee2, type: 3}
+    volume: 1
+    pitch: 0.6
+    source: {fileID: 0}
+  - name: BossSpawn
+    clip: {fileID: 8300000, guid: ddc45fd18ffcf3e48a1be6a115bcfdb4, type: 3}
+    volume: 1
+    pitch: 0.6
+    source: {fileID: 0}
+  - name: BossShoot
+    clip: {fileID: 8300000, guid: d6c809625c0a2ea4b9bdd052916a9cbc, type: 3}
+    volume: 1
+    pitch: 0.6
+    source: {fileID: 0}
+  - name: BossDamage
+    clip: {fileID: 8300000, guid: 49095426d5ab683469ea77e4f488aa17, type: 3}
+    volume: 1
+    pitch: 0.6
+    source: {fileID: 0}
+  - name: BossAttack
+    clip: {fileID: 8300000, guid: 1b9a14e623a603240a65983955685e4a, type: 3}
+    volume: 1
+    pitch: 0.6
+    source: {fileID: 0}

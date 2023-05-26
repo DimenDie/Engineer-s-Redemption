@@ -25,7 +25,6 @@ public class ShootingEnemy : MovingEnemy
         anim.SetTrigger("move");
     }
 
-    // Update is called once per frame
     void FixedUpdate()
     {
         if (Time.time >= nextAttackTime)

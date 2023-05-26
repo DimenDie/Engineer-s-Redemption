@@ -28,6 +28,9 @@ public class Level : MonoBehaviour
     {
         FindObjectOfType<AudioManager>().Play("Victory");
         yield return new WaitForSeconds(3);
-        SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
+        if (SceneManager.GetActiveScene().buildIndex == 3)
+            SceneManager.LoadScene(0);
+        else
+            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex + 1);
     }
 }
