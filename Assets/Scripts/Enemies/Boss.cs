@@ -16,11 +16,20 @@ public class Boss : MonoBehaviour
 
     private float animStart;
 
+    public bool isSpawned = false;
+
     private void Awake()
     {
         nextAttackTime = 0;
         anim = GetComponentInChildren<Animator>();
         projectile = Resources.Load<Projectile>("Projectile");
+
+
+    }
+
+    private void Start()
+    {
+        FindObjectOfType<AudioManager>().Play("BossSpawn");
     }
     public int Health
     {
@@ -40,7 +49,7 @@ public class Boss : MonoBehaviour
             Die();
         }
 
-        if (Time.time >= nextAttackTime)
+        if (Time.time >= nextAttackTime && isSpawned)
         {
             CheckAttack();
         }
@@ -48,23 +57,20 @@ public class Boss : MonoBehaviour
 
     private void Update()
     {
-        if ((animStart + anim.GetCurrentAnimatorStateInfo(0).length <= Time.time) && anim.GetCurrentAnimatorClipInfo(0)[0].clip.name != "Idle")     //Animation is ended whatever it was
+        if ((animStart + anim.GetCurrentAnimatorStateInfo(0).length <= Time.time) && anim.GetCurrentAnimatorClipInfo(0)[0].clip.name != "Idle" && isSpawned)     //Animation is ended whatever it was
         {
             anim.SetTrigger("idle");
             animStart = Time.time;
         }
 
-        if(Input.GetKeyDown(KeyCode.X)) 
-        {
+        if (Input.GetKeyDown(KeyCode.X))
             ReceiveDamage();
-        }
     }
 
     void CheckAttack()
     {
         RaycastHit2D leftAttack = Physics2D.Raycast(transform.position, Vector2.left, 7, gameObject.layer);
         RaycastHit2D rightAttack = Physics2D.Raycast(transform.position, Vector2.right, 7, gameObject.layer);
-
 
         int roll = Random.Range(1, 3);
         if (leftAttack && leftAttack.transform.GetComponent<Character>())
@@ -87,6 +93,7 @@ public class Boss : MonoBehaviour
     void Shoot()
     {
         anim.SetTrigger("shoot");
+        FindObjectOfType<AudioManager>().Play("BossShoot");
         animStart = Time.time;
         Projectile newProjectile = Instantiate(projectile, transform.position, projectile.transform.rotation) as Projectile;
 
@@ -98,6 +105,7 @@ public class Boss : MonoBehaviour
     void Attack()
     {
         anim.SetTrigger("attack");
+        FindObjectOfType<AudioManager>().Play("BossAttack");
         animStart = Time.time;
         nextAttackTime = Time.time + 1f / attackRate;
     }
@@ -105,7 +113,7 @@ public class Boss : MonoBehaviour
 
     public void Die()
     {
-        FindObjectOfType<AudioManager>().Play("EnemyDeath");
+        FindObjectOfType<AudioManager>().Play("BossDeath");
         anim.SetTrigger("death");
         anim.SetBool("isDead", true);
         StartCoroutine(DeathTimer());
@@ -116,6 +124,7 @@ public class Boss : MonoBehaviour
         if (isDead) { return; }
         --Health;
         anim.SetTrigger("hit");
+        FindObjectOfType<AudioManager>().Play("BossDamage");
         animStart = Time.time;
 
         Debug.Log(health);
